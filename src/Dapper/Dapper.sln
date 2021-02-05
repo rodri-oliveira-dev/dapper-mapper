@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30907.101
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DapperMapper", "DapperMapper\DapperMapper.csproj", "{9CE2BD6C-15D6-464E-A67A-0AAFA3D3EE6C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DapperMapper.Console", "DapperMapper\DapperMapper.Console.csproj", "{9CE2BD6C-15D6-464E-A67A-0AAFA3D3EE6C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DapperMapper", "..\DapperMapper\DapperMapper.csproj", "{81B80002-38A5-47F9-957D-F8B65D66491C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{9CE2BD6C-15D6-464E-A67A-0AAFA3D3EE6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9CE2BD6C-15D6-464E-A67A-0AAFA3D3EE6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9CE2BD6C-15D6-464E-A67A-0AAFA3D3EE6C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{81B80002-38A5-47F9-957D-F8B65D66491C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{81B80002-38A5-47F9-957D-F8B65D66491C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{81B80002-38A5-47F9-957D-F8B65D66491C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{81B80002-38A5-47F9-957D-F8B65D66491C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

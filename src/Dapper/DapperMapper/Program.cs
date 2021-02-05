@@ -1,4 +1,6 @@
-﻿namespace DapperMapper
+﻿using DapperMapper.Repositories;
+
+namespace DapperMapper.Console
 {
     class Program
     {
@@ -7,35 +9,22 @@
         static void Main(string[] args)
         {
 
-            var repo = new RegiaoRepository(StringConnection);
+            var repo = new DapperRepository<Regioes>(StringConnection);
 
-            var regioes = repo.Select<Regioes>(new Regioes { IdRegiao = 5 });
+            var regioes = repo.GetAll();
 
-            //FluentMapper.EntityMaps.Clear();
-            //FluentMapper.TypeConventions.Clear();
-            //FluentMapper.Initialize(config =>
-            //{
-            //    config.AddMap(new EstadoMap());
-            //    config.AddMap(new RegioesMap());
-            //    config.ForDommel();
-            //});
+            var teste = repo.Insert(new Regioes { IdRegiao = 9, NomeRegiao = "Teste" });
 
+            var regiao = repo.GetById(9);
 
-            //using (SqlConnection conexao = new SqlConnection(StringConnection))
-            //{
-            //    //var estado = conexao.Get<Estado>("SP");
-            //    //var estados = conexao.GetAll<Estado>();
+            regiao.NomeRegiao = "Teste 2";
 
-            //    var novoEstado = new Regioes { IdRegiao = 7, NomeRegiao="Teste Insert" };
+            var teste2 = repo.Update(regiao);
 
-            //    var teste =conexao.Insert(novoEstado);
+            var regiao2 = repo.GetById(regiao);
 
-            //    conexao.Update(new Regioes { IdRegiao = 7, NomeRegiao="Teste Update" });
+            repo.Delete(regiao2);
 
-            //    var estadoTeste = conexao.Get<Regioes>(7);
-
-            //    conexao.Delete(new Regioes { IdRegiao = 7 });
-            //}
         }
     }
 }

@@ -1,10 +1,14 @@
-﻿namespace DapperMapper
+﻿using DapperMapper.Attributes;
+
+namespace DapperMapper.Console
 {
+    [DapperTable("Regioes")]
     public class Regioes
     {
-        public string NomeRegiao { get; set; }
-
-        [DapperKey]
+        [DapperColumn(primaryKey: true)]
         public int IdRegiao { get; set; }
+
+        [DapperColumn("NomeRegiao")]
+        public string NomeRegiao { get; set; }
     }
 }

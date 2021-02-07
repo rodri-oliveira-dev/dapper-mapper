@@ -1,0 +1,219 @@
+﻿using Dapper;
+using DapperMapper.Attributes;
+using DapperMapper.Enums;
+using DapperMapper.Mapper;
+using DapperMapper.Repositories.Supports;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+using System.Linq;
+
+namespace DapperMapper.Repositories
+{
+    public class DapperRepository<T> where T : class, new()
+    {
+        private readonly string _connectionString;
+        private readonly List<MappedEntityProperty<T>> _entityMap;
+
+        public DapperRepository(string connectionString)
+        {
+            if (!typeof(T).GetCustomAttributes(typeof(DapperTable), true).Any())
+            {
+                throw new InvalidOperationException($"Entidade do tipo {typeof(T).FullName} não possui o atibuto mapper.");
+            }
+
+
+            _entityMap = CommandMap.RetornaDadosMap<T>();
+            _connectionString = connectionString;
+        }
+
+        public T GetById(dynamic id)
+        {
+            DynamicParameters parms = CommandMap.RetornaParametroPrimaryKeyUnica<T>(id, _entityMap);
+            var selectAllCommand = CommandMap.RetornaConsultaSql(_entityMap, QueryType.SelectById);
+
+            using IDbConnection db = new SqlConnection(_connectionString);
+            return db.Query<T>(selectAllCommand, parms, commandType: CommandType.Text).FirstOrDefault();
+        }
+
+        public T GetById(T entity)
+        {
+            var parms = CommandMap.RetornaParametros(entity, _entityMap, QueryType.SelectById);
+            var selectAllCommand = CommandMap.RetornaConsultaSql(_entityMap, QueryType.SelectById);
+
+            using IDbConnection db = new SqlConnection(_connectionString);
+            return db.Query<T>(selectAllCommand, parms, commandType: CommandType.Text).FirstOrDefault();
+        }
+
+        public List<T> GetAll()
+        {
+            var selectAllCommand = CommandMap.RetornaConsultaSql(_entityMap, QueryType.SelectAll);
+
+            using IDbConnection db = new SqlConnection(_connectionString);
+            return db.Query<T>(selectAllCommand, null, commandType: CommandType.Text).ToList();
+        }
+
+        public int QuantidadeRegistros()
+        {
+            var selectCountCommand = $"SELECT COUNT(*) FROM {CommandMap.NomeTabela(typeof(T))};";
+
+            using IDbConnection db = new SqlConnection(_connectionString);
+            return db.ExecuteScalar<int>(selectCountCommand, null, commandType: CommandType.Text);
+        }
+
+        public bool Insert(T entity)
+        {
+            var parms = CommandMap.RetornaParametros(entity, _entityMap, QueryType.Insert);
+            var insertCommand = CommandMap.RetornaConsultaSql(_entityMap, QueryType.InsertWithCount);
+
+            using IDbConnection db = new SqlConnection(_connectionString);
+            return db.ExecuteScalar<int>(insertCommand, parms, commandType: CommandType.Text) > 0;
+        }
+
+        public void Insert(T entity, IDbConnection cnn, IDbTransaction trans)
+        {
+            if (cnn == null)
+            {
+                throw new ArgumentNullException(nameof(cnn), "Conexão não pode ser nula");
+            }
+
+            if (trans == null)
+            {
+                throw new ArgumentNullException(nameof(trans), "Transação não pode ser nula");
+            }
+
+            var parms = CommandMap.RetornaParametros<T>(entity, _entityMap, QueryType.Insert);
+            var insertCommand = CommandMap.RetornaConsultaSql<T>(_entityMap, QueryType.Insert);
+
+            cnn.Execute(insertCommand, parms, trans, commandType: CommandType.Text);
+        }
+
+        public bool Insert(List<T> entityList)
+        {
+            using (IDbConnection db = new SqlConnection(_connectionString))
+            {
+                var trans = db.BeginTransaction();
+
+                try
+                {
+                    foreach (var entity in entityList)
+                    {
+                        Insert(entity, db, trans);
+                    }
+
+                    trans.Commit();
+                    return true;
+                }
+                catch
+                {
+                    trans.Rollback();
+                    return false;
+                }
+            }
+        }
+
+        public bool Update(T entity)
+        {
+            var parms = CommandMap.RetornaParametros(entity, _entityMap, QueryType.Update);
+            var updateCommand = CommandMap.RetornaConsultaSql(_entityMap, QueryType.UpdateWithCount);
+
+            using IDbConnection db = new SqlConnection(_connectionString);
+            return db.ExecuteScalar<int>(updateCommand, parms, commandType: CommandType.Text) > 0;
+        }
+
+        public virtual void Update(T entity, IDbConnection cnn, IDbTransaction trans)
+        {
+            if (cnn == null)
+            {
+                throw new ArgumentNullException(nameof(cnn), "Conexão não pode ser nula");
+            }
+
+            if (trans == null)
+            {
+                throw new ArgumentNullException(nameof(trans), "Transação não pode ser nula");
+            }
+
+            var parms = CommandMap.RetornaParametros(entity, _entityMap, QueryType.Update);
+            var insertCommand = CommandMap.RetornaConsultaSql(_entityMap, QueryType.Update);
+
+            cnn.Execute(insertCommand, parms, trans, commandType: CommandType.Text);
+        }
+
+        public bool Update(List<T> entityList)
+        {
+            using (IDbConnection db = new SqlConnection(_connectionString))
+            {
+                var trans = db.BeginTransaction();
+
+                try
+                {
+                    foreach (var entity in entityList)
+                    {
+                        Insert(entity, db, trans);
+                    }
+
+                    trans.Commit();
+                    return true;
+                }
+                catch
+                {
+                    trans.Rollback();
+                    return false;
+                }
+            }
+        }
+
+        public bool Delete(T entity)
+        {
+            var parms = CommandMap.RetornaParametros(entity, _entityMap, QueryType.Delete);
+            var deleteSql = CommandMap.RetornaConsultaSql(_entityMap, QueryType.DeleteWithCount);
+
+            using IDbConnection db = new SqlConnection(_connectionString);
+            return db.ExecuteScalar<int>(deleteSql, parms, commandType: CommandType.Text) > 0;
+        }
+
+        public void Delete(T entity, IDbConnection cnn, IDbTransaction trans)
+        {
+            if (cnn == null)
+            {
+                throw new ArgumentNullException("cnn", "Conexão não pode ser nula");
+            }
+
+            if (trans == null)
+            {
+                throw new ArgumentNullException("trans", "Transação não pode ser nula");
+            }
+
+            var parms = CommandMap.RetornaParametros(entity, _entityMap, QueryType.Delete);
+            var deleteSql = CommandMap.RetornaConsultaSql(_entityMap, QueryType.Delete);
+
+            using IDbConnection db = new SqlConnection(_connectionString);
+            cnn.Execute(deleteSql, parms, trans, commandType: CommandType.Text);
+        }
+
+        public virtual bool Delete(List<T> entityList)
+        {
+            using (IDbConnection db = new SqlConnection(_connectionString))
+            {
+                var trans = db.BeginTransaction();
+
+                try
+                {
+                    foreach (var entity in entityList)
+                    {
+                        Delete(entity, db, trans);
+                    }
+
+                    trans.Commit();
+                    return true;
+                }
+                catch
+                {
+                    trans.Rollback();
+                    return false;
+                }
+            }
+        }
+    }
+}

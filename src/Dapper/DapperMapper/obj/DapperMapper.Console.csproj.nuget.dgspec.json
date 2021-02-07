@@ -122,13 +122,9 @@
         "netcoreapp3.1": {
           "targetAlias": "netcoreapp3.1",
           "dependencies": {
-            "Dapper": {
+            "BenchmarkDotNet": {
               "target": "Package",
-              "version": "[2.0.78, )"
-            },
-            "System.Data.SqlClient": {
-              "target": "Package",
-              "version": "[4.8.2, )"
+              "version": "[0.12.1, )"
             }
           },
           "imports": [

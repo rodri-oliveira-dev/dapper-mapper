@@ -2,6 +2,15 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <Description>Projeto tem como ideia mapear a entidade com sua respectiva tabela de forma fácil e clara.</Description>
+    <RepositoryUrl>https://github.com/RodrigoDotNet/dapper-mapper</RepositoryUrl>
+    <PackageTags>dapper, dapper-extensions</PackageTags>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <WarningLevel>0</WarningLevel>
   </PropertyGroup>
 
   <ItemGroup>

@@ -8,7 +8,7 @@ namespace DapperMapper.Console
         [DapperColumn(primaryKey: true)]
         public int IdRegiao { get; set; }
 
-        [DapperColumn("NomeRegiao")]
+        [DapperColumn]
         public string NomeRegiao { get; set; }
     }
 }

@@ -292,3 +292,5 @@ tools/**
 *.odx.cs
 *.xsd.cs
 /src/Financeiro.GatewayPagamento.Api/livenessdb-journal
+bin
+obj

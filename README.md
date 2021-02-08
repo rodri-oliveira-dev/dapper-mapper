@@ -1,2 +1,2 @@
 # dapper-mapper
-Mapper de entidades para Dapper
+Projeto tem como ideia mapear a entidade com sua respectiva tabela de forma fácil e clara.

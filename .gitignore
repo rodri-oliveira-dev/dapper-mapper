@@ -294,3 +294,5 @@ tools/**
 /src/Financeiro.GatewayPagamento.Api/livenessdb-journal
 bin
 obj
+.vs
+.vs

@@ -9,7 +9,7 @@ namespace DapperMapper.Mapper
         public MappedEntityProperty(PropertyInfo property, DapperColumn dapperColumn)
         {
             Property = property;
-            DapperColumn = dapperColumn;
+            DapperColumn = dapperColumn ?? new DapperColumn(property.Name);
             Setter = FasterInvoker.BuildUntypedSetter<T>(property);
             Getter = FasterInvoker.BuildUntypedGetter<T>(property);
         }

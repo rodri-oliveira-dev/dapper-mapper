@@ -10,8 +10,7 @@ A extensão permite configurar de maneira fácil o mapeamento entre as entidades
 <hr>
 
 ### Maneira de usar
-#### Manual mapping
-You can map property names manually using the [`EntityMap<TEntity>`](https://github.com/henkmollema/Dapper-FluentMap/blob/master/src/Dapper.FluentMap/Mapping/EntityMap.cs) class. When creating a derived class, the constructor gives you access to the `Map` method, allowing you to specify to which database column name a certain property of `TEntity` should map to.
+
 ```csharp
     [DapperTable("TabelaTeste")]
     public class TabelaTeste

@@ -10,13 +10,13 @@ namespace DapperMapper.Console
         static void Main(string[] args)
         {
 
-            //var repoNovo = new TabelaTesteDapperMapper(StringConnection);
+            var repoNovo = new TabelaTesteDapperMapper(StringConnection);
 
             //var repoAntigo = new TabelaTesteRepository(StringConnection);
 
             ////var regioes = repoNovo.GetAll();
 
-            //repoNovo.Insert(new TabelaTeste { Campo1 = "Campo 1" });
+            repoNovo.Insert(new TabelaTeste { Campo1 = "Campo 1" });
             //repoAntigo.Insert(new TabelaTeste { Campo1 = "Campo 2" });
 
             //var regiao = repoNovo.GetById(9);

@@ -11,27 +11,32 @@ using System.Linq;
 
 namespace DapperMapper.Repositories
 {
-    public class DapperRepository<T> where T : class, new()
+    public abstract class DapperRepository<T> where T : class, new()
     {
         private readonly string _connectionString;
         private readonly List<MappedEntityProperty<T>> _entityMap;
 
-        public DapperRepository(string connectionString)
+        protected DapperRepository(string connectionString)
         {
             if (!typeof(T).GetCustomAttributes(typeof(DapperTable), true).Any())
             {
                 throw new InvalidOperationException($"Entidade do tipo {typeof(T).FullName} não possui o atibuto mapper.");
             }
 
+            _entityMap = QueryMapper.RetornaDadosMap<T>();
 
-            _entityMap = CommandMap.RetornaDadosMap<T>();
+            if (!_entityMap.Any(p => p.DapperColumn.PrimaryKey))
+            {
+                throw new InvalidOperationException($"Entidade do tipo {typeof(T).FullName} não possui uma chave primaria.");
+            }
+
             _connectionString = connectionString;
         }
 
         public T GetById(dynamic id)
         {
-            DynamicParameters parms = CommandMap.RetornaParametroPrimaryKeyUnica<T>(id, _entityMap);
-            var selectAllCommand = CommandMap.RetornaConsultaSql(_entityMap, QueryType.SelectById);
+            DynamicParameters parms = QueryMapper.RetornaParametroPrimaryKeyUnica<T>(id, _entityMap);
+            var selectAllCommand = QueryMapper.RetornaConsultaSql(_entityMap, QueryType.SelectById);
 
             using IDbConnection db = new SqlConnection(_connectionString);
             return db.Query<T>(selectAllCommand, parms, commandType: CommandType.Text).FirstOrDefault();
@@ -39,8 +44,8 @@ namespace DapperMapper.Repositories
 
         public T GetById(T entity)
         {
-            var parms = CommandMap.RetornaParametros(entity, _entityMap, QueryType.SelectById);
-            var selectAllCommand = CommandMap.RetornaConsultaSql(_entityMap, QueryType.SelectById);
+            var parms = QueryMapper.RetornaParametros(entity, _entityMap, QueryType.SelectById);
+            var selectAllCommand = QueryMapper.RetornaConsultaSql(_entityMap, QueryType.SelectById);
 
             using IDbConnection db = new SqlConnection(_connectionString);
             return db.Query<T>(selectAllCommand, parms, commandType: CommandType.Text).FirstOrDefault();
@@ -48,7 +53,7 @@ namespace DapperMapper.Repositories
 
         public List<T> GetAll()
         {
-            var selectAllCommand = CommandMap.RetornaConsultaSql(_entityMap, QueryType.SelectAll);
+            var selectAllCommand = QueryMapper.RetornaConsultaSql(_entityMap, QueryType.SelectAll);
 
             using IDbConnection db = new SqlConnection(_connectionString);
             return db.Query<T>(selectAllCommand, null, commandType: CommandType.Text).ToList();
@@ -56,7 +61,7 @@ namespace DapperMapper.Repositories
 
         public int QuantidadeRegistros()
         {
-            var selectCountCommand = $"SELECT COUNT(*) FROM {CommandMap.NomeTabela(typeof(T))};";
+            var selectCountCommand = $"SELECT COUNT(*) FROM {QueryMapper.GetTableName(typeof(T))};";
 
             using IDbConnection db = new SqlConnection(_connectionString);
             return db.ExecuteScalar<int>(selectCountCommand, null, commandType: CommandType.Text);
@@ -64,8 +69,8 @@ namespace DapperMapper.Repositories
 
         public bool Insert(T entity)
         {
-            var parms = CommandMap.RetornaParametros(entity, _entityMap, QueryType.Insert);
-            var insertCommand = CommandMap.RetornaConsultaSql(_entityMap, QueryType.InsertWithCount);
+            var parms = QueryMapper.RetornaParametros(entity, _entityMap, QueryType.Insert);
+            var insertCommand = QueryMapper.RetornaConsultaSql(_entityMap, QueryType.InsertWithCount);
 
             using IDbConnection db = new SqlConnection(_connectionString);
             return db.ExecuteScalar<int>(insertCommand, parms, commandType: CommandType.Text) > 0;
@@ -83,8 +88,8 @@ namespace DapperMapper.Repositories
                 throw new ArgumentNullException(nameof(trans), "Transação não pode ser nula");
             }
 
-            var parms = CommandMap.RetornaParametros<T>(entity, _entityMap, QueryType.Insert);
-            var insertCommand = CommandMap.RetornaConsultaSql<T>(_entityMap, QueryType.Insert);
+            var parms = QueryMapper.RetornaParametros<T>(entity, _entityMap, QueryType.Insert);
+            var insertCommand = QueryMapper.RetornaConsultaSql<T>(_entityMap, QueryType.Insert);
 
             cnn.Execute(insertCommand, parms, trans, commandType: CommandType.Text);
         }
@@ -115,8 +120,8 @@ namespace DapperMapper.Repositories
 
         public bool Update(T entity)
         {
-            var parms = CommandMap.RetornaParametros(entity, _entityMap, QueryType.Update);
-            var updateCommand = CommandMap.RetornaConsultaSql(_entityMap, QueryType.UpdateWithCount);
+            var parms = QueryMapper.RetornaParametros(entity, _entityMap, QueryType.Update);
+            var updateCommand = QueryMapper.RetornaConsultaSql(_entityMap, QueryType.UpdateWithCount);
 
             using IDbConnection db = new SqlConnection(_connectionString);
             return db.ExecuteScalar<int>(updateCommand, parms, commandType: CommandType.Text) > 0;
@@ -134,8 +139,8 @@ namespace DapperMapper.Repositories
                 throw new ArgumentNullException(nameof(trans), "Transação não pode ser nula");
             }
 
-            var parms = CommandMap.RetornaParametros(entity, _entityMap, QueryType.Update);
-            var insertCommand = CommandMap.RetornaConsultaSql(_entityMap, QueryType.Update);
+            var parms = QueryMapper.RetornaParametros(entity, _entityMap, QueryType.Update);
+            var insertCommand = QueryMapper.RetornaConsultaSql(_entityMap, QueryType.Update);
 
             cnn.Execute(insertCommand, parms, trans, commandType: CommandType.Text);
         }
@@ -166,8 +171,8 @@ namespace DapperMapper.Repositories
 
         public bool Delete(T entity)
         {
-            var parms = CommandMap.RetornaParametros(entity, _entityMap, QueryType.Delete);
-            var deleteSql = CommandMap.RetornaConsultaSql(_entityMap, QueryType.DeleteWithCount);
+            var parms = QueryMapper.RetornaParametros(entity, _entityMap, QueryType.Delete);
+            var deleteSql = QueryMapper.RetornaConsultaSql(_entityMap, QueryType.DeleteWithCount);
 
             using IDbConnection db = new SqlConnection(_connectionString);
             return db.ExecuteScalar<int>(deleteSql, parms, commandType: CommandType.Text) > 0;
@@ -185,8 +190,8 @@ namespace DapperMapper.Repositories
                 throw new ArgumentNullException("trans", "Transação não pode ser nula");
             }
 
-            var parms = CommandMap.RetornaParametros(entity, _entityMap, QueryType.Delete);
-            var deleteSql = CommandMap.RetornaConsultaSql(_entityMap, QueryType.Delete);
+            var parms = QueryMapper.RetornaParametros(entity, _entityMap, QueryType.Delete);
+            var deleteSql = QueryMapper.RetornaConsultaSql(_entityMap, QueryType.Delete);
 
             using IDbConnection db = new SqlConnection(_connectionString);
             cnn.Execute(deleteSql, parms, trans, commandType: CommandType.Text);

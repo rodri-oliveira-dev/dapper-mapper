@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace DapperMapper.Repositories.Supports
 {
-    internal static class CommandMap
+    internal static class QueryMapper
     {
         private static readonly CachingMannager Cache = new CachingMannager(new TimeSpan(30, 0, 0, 0));
 
@@ -55,11 +55,6 @@ namespace DapperMapper.Repositories.Supports
             if (entityMap.Count(coluna => coluna.DapperColumn.PrimaryKey) > 1)
             {
                 throw new ArgumentOutOfRangeException("Entidade possui mais de uma Key");
-            }
-
-            if (entityMap.Count(coluna => coluna.DapperColumn.PrimaryKey) == 0)
-            {
-                throw new ArgumentOutOfRangeException("Entidade não possui atributo Key");
             }
 
             foreach (var coluna in entityMap.Where(coluna => coluna.DapperColumn.PrimaryKey))
@@ -129,10 +124,10 @@ namespace DapperMapper.Repositories.Supports
                         whereById.Add(string.Format("{0} = @{0}", coluna.DapperColumn.ColumnName));
                     }
 
-                    return $"SELECT {string.Join(", ", entityMap.Select(c => c.DapperColumn.ColumnName).ToArray())} FROM {NomeTabela(typeof(T))} WHERE {string.Join(" AND ", whereById.ToArray())};";
+                    return $"SELECT {string.Join(", ", entityMap.Select(c => c.DapperColumn.ColumnName).ToArray())} FROM {GetTableName(typeof(T))} WHERE {string.Join(" AND ", whereById.ToArray())};";
 
                 case QueryType.SelectAll:
-                    return $"SELECT {string.Join(", ", entityMap.Select(c => c.DapperColumn.ColumnName).ToArray())} FROM {NomeTabela(typeof(T))};";
+                    return $"SELECT {string.Join(", ", entityMap.Select(c => c.DapperColumn.ColumnName).ToArray())} FROM {GetTableName(typeof(T))};";
 
                 case QueryType.Insert:
                 case QueryType.InsertWithCount:
@@ -141,7 +136,7 @@ namespace DapperMapper.Repositories.Supports
                         .Select(c => c.DapperColumn.ColumnName)
                         .ToList();
 
-                    return $"INSERT INTO {NomeTabela(typeof(T))} ({string.Join(", ", camposInsert.ToArray())}) VALUES (@{string.Join(" ,@", camposInsert.ToArray())});{(queryType == QueryType.InsertWithCount ? "SELECT @@ROWCOUNT;" : "")}";
+                    return $"INSERT INTO {GetTableName(typeof(T))} ({string.Join(", ", camposInsert.ToArray())}) VALUES (@{string.Join(" ,@", camposInsert.ToArray())});{(queryType == QueryType.InsertWithCount ? "SELECT @@ROWCOUNT;" : "")}";
 
                 case QueryType.Update:
                 case QueryType.UpdateWithCount:
@@ -168,7 +163,7 @@ namespace DapperMapper.Repositories.Supports
                         }
                     }
 
-                    return $"UPDATE {NomeTabela(typeof(T))} SET {string.Join(",", camposUpdate.ToArray())} WHERE {string.Join(" AND ", whereUpdate.ToArray())};{(queryType == QueryType.UpdateWithCount ? "SELECT @@ROWCOUNT;" : "")}";
+                    return $"UPDATE {GetTableName(typeof(T))} SET {string.Join(",", camposUpdate.ToArray())} WHERE {string.Join(" AND ", whereUpdate.ToArray())};{(queryType == QueryType.UpdateWithCount ? "SELECT @@ROWCOUNT;" : "")}";
 
                 case QueryType.Delete:
                 case QueryType.DeleteWithCount:
@@ -185,16 +180,16 @@ namespace DapperMapper.Repositories.Supports
                         whereDel.Add(string.Format("{0} = @{0}", coluna.DapperColumn.ColumnName));
                     }
 
-                    return $"DELETE FROM {NomeTabela(typeof(T))} WHERE {string.Join(" AND ", whereDel.ToArray())};{(queryType == QueryType.DeleteWithCount ? "SELECT @@ROWCOUNT;" : "")}";
+                    return $"DELETE FROM {GetTableName(typeof(T))} WHERE {string.Join(" AND ", whereDel.ToArray())};{(queryType == QueryType.DeleteWithCount ? "SELECT @@ROWCOUNT;" : "")}";
 
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
 
-        internal static string NomeTabela(Type typeEntity)
+        internal static string GetTableName(Type entityType)
         {
-            var attribute = (DapperTable)typeEntity.GetCustomAttributes(typeof(DapperTable), true).FirstOrDefault();
+            var attribute = (DapperTable)entityType.GetCustomAttributes(typeof(DapperTable), true).FirstOrDefault();
 
             if (attribute == null)
             {

@@ -54,7 +54,7 @@ namespace DapperMapper.Repositories.Supports
 
             if (entityMap.Count(coluna => coluna.DapperColumn.PrimaryKey) > 1)
             {
-                throw new ArgumentOutOfRangeException("Entidade possui mais de uma Key");
+                throw new ArgumentOutOfRangeException(nameof(entityMap), "Entidade não possui um atributo PrimaryKey definido.");
             }
 
             foreach (var coluna in entityMap.Where(coluna => coluna.DapperColumn.PrimaryKey))
@@ -76,7 +76,7 @@ namespace DapperMapper.Repositories.Supports
                 case QueryType.InsertWithReturn:
                     foreach (var coluna in entityMap.Where(coluna => (coluna.DapperColumn.Sync == AutoSync.Ever || coluna.DapperColumn.Sync == AutoSync.OnlyOnInsert)))
                     {
-                        parametros.Add(coluna.DapperColumn.ColumnName, coluna.Getter(entity));
+                        parametros.Add(coluna.DapperColumn.ParameterName, coluna.Getter(entity));
                     }
                     break;
 
@@ -85,15 +85,16 @@ namespace DapperMapper.Repositories.Supports
                 case QueryType.UpdateWithReturn:
                     foreach (var coluna in entityMap.Where(coluna => (coluna.DapperColumn.Sync == AutoSync.Ever || coluna.DapperColumn.Sync == AutoSync.OnlyOnUpdate)))
                     {
-                        parametros.Add(coluna.DapperColumn.ColumnName, coluna.Getter(entity));
+                        parametros.Add(coluna.DapperColumn.ParameterName, coluna.Getter(entity));
                     }
                     break;
 
                 case QueryType.SelectById:
                 case QueryType.Delete:
+                case QueryType.DeleteWithCount:
                     foreach (var coluna in entityMap.Where(coluna => coluna.DapperColumn.PrimaryKey))
                     {
-                        parametros.Add(coluna.DapperColumn.ColumnName, coluna.Getter(entity));
+                        parametros.Add(coluna.DapperColumn.ParameterName, coluna.Getter(entity));
                     }
                     break;
                 default:
@@ -114,20 +115,20 @@ namespace DapperMapper.Repositories.Supports
 
                     if (entityMap.Count(coluna => coluna.DapperColumn.PrimaryKey) == 0)
                     {
-                        throw new ArgumentOutOfRangeException("Entidade não possui atributo Key");
+                        throw new ArgumentOutOfRangeException(nameof(entityMap), "Entidade não possui um atributo PrimaryKey definido.");
                     }
 
                     var whereById = new List<string>();
 
                     foreach (var coluna in entityMap.Where(c => c.DapperColumn.PrimaryKey))
                     {
-                        whereById.Add(string.Format("{0} = @{0}", coluna.DapperColumn.ColumnName));
+                        whereById.Add($"{coluna.DapperColumn.ColumnName} = @{coluna.DapperColumn.ParameterName}");
                     }
 
-                    return $"SELECT {string.Join(", ", entityMap.Select(c => c.DapperColumn.ColumnName).ToArray())} FROM {GetTableName(typeof(T))} WHERE {string.Join(" AND ", whereById.ToArray())};";
+                    return $"SELECT {string.Join(", ", entityMap.Select(c => c.ToString()).ToArray())} FROM {GetTableName(typeof(T))} WHERE {string.Join(" AND ", whereById.ToArray())};";
 
                 case QueryType.SelectAll:
-                    return $"SELECT {string.Join(", ", entityMap.Select(c => c.DapperColumn.ColumnName).ToArray())} FROM {GetTableName(typeof(T))};";
+                    return $"SELECT {string.Join(", ", entityMap.Select(c => c.ToString()).ToArray())} FROM {GetTableName(typeof(T))};";
 
                 case QueryType.Insert:
                 case QueryType.InsertWithCount:
@@ -136,14 +137,19 @@ namespace DapperMapper.Repositories.Supports
                         .Select(c => c.DapperColumn.ColumnName)
                         .ToList();
 
-                    return $"INSERT INTO {GetTableName(typeof(T))} ({string.Join(", ", camposInsert.ToArray())}) VALUES (@{string.Join(" ,@", camposInsert.ToArray())});{(queryType == QueryType.InsertWithCount ? "SELECT @@ROWCOUNT;" : "")}";
+                    var parametrosInsert = entityMap
+                        .Where(coluna => coluna.DapperColumn.Sync == AutoSync.Ever || coluna.DapperColumn.Sync == AutoSync.OnlyOnInsert)
+                        .Select(c => c.DapperColumn.ParameterName)
+                        .ToList();
+
+                    return $"INSERT INTO {GetTableName(typeof(T))} ({string.Join(", ", camposInsert.ToArray())}) VALUES (@{string.Join(" ,@", parametrosInsert.ToArray())});{(queryType == QueryType.InsertWithCount ? "SELECT @@ROWCOUNT;" : "")}";
 
                 case QueryType.Update:
                 case QueryType.UpdateWithCount:
 
                     if (entityMap.Count(coluna => coluna.DapperColumn.PrimaryKey) == 0)
                     {
-                        throw new ArgumentOutOfRangeException("Entidade não possui atributo Key");
+                        throw new ArgumentOutOfRangeException(nameof(entityMap), "Entidade não possui um atributo PrimaryKey definido.");
                     }
 
                     var camposUpdate = new List<string>();
@@ -154,11 +160,11 @@ namespace DapperMapper.Repositories.Supports
                         switch (coluna.DapperColumn.PrimaryKey)
                         {
                             case false when (coluna.DapperColumn.Sync == AutoSync.Ever || coluna.DapperColumn.Sync == AutoSync.OnlyOnUpdate):
-                                camposUpdate.Add(string.Format("{0} = @{0}", coluna.DapperColumn.ColumnName));
+                                camposUpdate.Add($"{coluna.DapperColumn.ColumnName} = @{coluna.DapperColumn.ParameterName}");
                                 break;
 
                             case true:
-                                whereUpdate.Add(string.Format("{0} = @{0}", coluna.DapperColumn.ColumnName));
+                                whereUpdate.Add($"{coluna.DapperColumn.ColumnName} = @{coluna.DapperColumn.ParameterName}");
                                 break;
                         }
                     }
@@ -170,20 +176,20 @@ namespace DapperMapper.Repositories.Supports
 
                     if (entityMap.Count(coluna => coluna.DapperColumn.PrimaryKey) == 0)
                     {
-                        throw new ArgumentOutOfRangeException("Entidade não possui atributo DapperKey");
+                        throw new ArgumentOutOfRangeException(nameof(entityMap), "Entidade não possui um atributo PrimaryKey definido.");
                     }
 
                     var whereDel = new List<string>();
 
                     foreach (var coluna in entityMap.Where(c => c.DapperColumn.PrimaryKey))
                     {
-                        whereDel.Add(string.Format("{0} = @{0}", coluna.DapperColumn.ColumnName));
+                        whereDel.Add($"{coluna.DapperColumn.ColumnName} = @{coluna.DapperColumn.ParameterName}");
                     }
 
                     return $"DELETE FROM {GetTableName(typeof(T))} WHERE {string.Join(" AND ", whereDel.ToArray())};{(queryType == QueryType.DeleteWithCount ? "SELECT @@ROWCOUNT;" : "")}";
 
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentOutOfRangeException(nameof(queryType), "Tipo consulta não implementado.");
             }
         }
 
@@ -193,7 +199,7 @@ namespace DapperMapper.Repositories.Supports
 
             if (attribute == null)
             {
-                throw new ArgumentOutOfRangeException($"Entidade não possui atributo {nameof(DapperTable)}");
+                throw new ArgumentOutOfRangeException(nameof(entityType), $"Entidade não possui atributo {nameof(DapperTable)}");
             }
 
             return attribute.TableName;

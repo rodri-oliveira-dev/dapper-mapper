@@ -11,12 +11,12 @@ using System.Linq;
 
 namespace DapperMapper.Repositories
 {
-    public abstract class DapperRepository<T> where T : class, new()
+    public class DapperRepository<T> where T : class, new()
     {
         private readonly string _connectionString;
         private readonly List<MappedEntityProperty<T>> _entityMap;
 
-        protected DapperRepository(string connectionString)
+        public DapperRepository(string connectionString)
         {
             if (!typeof(T).GetCustomAttributes(typeof(DapperTable), true).Any())
             {
@@ -45,10 +45,10 @@ namespace DapperMapper.Repositories
         public T GetById(T entity)
         {
             var parms = QueryMapper.RetornaParametros(entity, _entityMap, QueryType.SelectById);
-            var selectAllCommand = QueryMapper.RetornaConsultaSql(_entityMap, QueryType.SelectById);
+            var selectByIdCommand = QueryMapper.RetornaConsultaSql(_entityMap, QueryType.SelectById);
 
             using IDbConnection db = new SqlConnection(_connectionString);
-            return db.Query<T>(selectAllCommand, parms, commandType: CommandType.Text).FirstOrDefault();
+            return db.Query<T>(selectByIdCommand, parms, commandType: CommandType.Text).FirstOrDefault();
         }
 
         public List<T> GetAll()

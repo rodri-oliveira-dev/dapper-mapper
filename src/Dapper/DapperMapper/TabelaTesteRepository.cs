@@ -47,7 +47,7 @@ namespace DapperMapper.Console
             var parameters = new DynamicParameters();
 
             parameters.Add("Id", entity.Id);
-            parameters.Add("Campo1", entity.Campo1);
+            parameters.Add("Campo1", entity.Campo);
             parameters.Add("Campo2", entity.Campo2);
             parameters.Add("Campo3", entity.Campo3);
             parameters.Add("Campo4", entity.Campo4);
@@ -67,7 +67,7 @@ namespace DapperMapper.Console
             var parameters = new DynamicParameters();
 
             parameters.Add("Id", entity.Id);
-            parameters.Add("Campo1", entity.Campo1);
+            parameters.Add("Campo1", entity.Campo);
             parameters.Add("Campo2", entity.Campo2);
             parameters.Add("Campo3", entity.Campo3);
             parameters.Add("Campo4", entity.Campo4);

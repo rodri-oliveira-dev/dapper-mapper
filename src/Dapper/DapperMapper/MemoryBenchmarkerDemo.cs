@@ -49,7 +49,7 @@ namespace DapperMapper.Console
             {
                 repo.Insert(new TabelaTeste
                 {
-                    Campo1 = "Campo1",
+                    Campo = "Campo1",
                     Campo2 = "Campo2",
                     Campo3 = "Campo3",
                     Campo4 = "Campo4",

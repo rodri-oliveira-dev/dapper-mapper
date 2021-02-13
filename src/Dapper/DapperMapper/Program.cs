@@ -16,7 +16,9 @@ namespace DapperMapper.Console
 
             ////var regioes = repoNovo.GetAll();
 
-            repoNovo.Insert(new TabelaTeste { Campo1 = "Campo 1" });
+            var tste = repoNovo.GetAll();
+
+            repoNovo.Insert(new TabelaTeste());
             //repoAntigo.Insert(new TabelaTeste { Campo1 = "Campo 2" });
 
             //var regiao = repoNovo.GetById(9);

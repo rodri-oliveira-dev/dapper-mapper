@@ -9,7 +9,7 @@ namespace DapperMapper.Console
         [DapperColumn(PrimaryKey = true)]
         public Guid Id { get; set; }
 
-        [DapperColumn("[Campo1']")]
+        [DapperColumn("Campo1")]
         public string Campo { get; set; }
 
 

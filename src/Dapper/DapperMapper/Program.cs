@@ -1,4 +1,5 @@
 ﻿using BenchmarkDotNet.Running;
+using System.Collections.Generic;
 
 namespace DapperMapper.Console
 {
@@ -16,10 +17,27 @@ namespace DapperMapper.Console
 
             ////var regioes = repoNovo.GetAll();
 
-            var tste = repoNovo.GetAll();
+            // var tste = repoNovo.GetAll();
 
-            repoNovo.Insert(new TabelaTeste());
-            //repoAntigo.Insert(new TabelaTeste { Campo1 = "Campo 2" });
+            // repoNovo.Insert(new TabelaTeste());
+            repoNovo.Insert(new List<TabelaTeste>
+            {
+                new TabelaTeste
+                {
+                    Campo = "teste",
+                    Campo2 = "Teste2"
+                },
+                new TabelaTeste
+                {
+                    Campo = "teste",
+                    Campo2 = "Teste2"
+                },
+                new TabelaTeste
+                {
+                    Campo = "teste",
+                    Campo2 = "Teste2"
+                }
+            });
 
             //var regiao = repoNovo.GetById(9);
 

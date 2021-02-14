@@ -6,6 +6,11 @@ namespace DapperMapper.Console
     [DapperTable("TabelaTeste")]
     public class TabelaTeste
     {
+        public TabelaTeste()
+        {
+            Id = Guid.NewGuid();
+        }
+
         [DapperColumn(PrimaryKey = true)]
         public Guid Id { get; set; }
 

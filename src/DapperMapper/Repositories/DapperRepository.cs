@@ -1,8 +1,9 @@
 ﻿using Dapper;
 using DapperMapper.Attributes;
+using DapperMapper.CommandMapper;
 using DapperMapper.Enums;
 using DapperMapper.Mapper;
-using DapperMapper.Repositories.Supports;
+using DapperMapper.Results;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -23,7 +24,7 @@ namespace DapperMapper.Repositories
                 throw new InvalidOperationException($"Entidade do tipo {typeof(T).FullName} não possui o atibuto mapper.");
             }
 
-            _entityMap = QueryMapper.RetornaDadosMap<T>();
+            _entityMap = EntityMap.ReturnEntityMap<T>();
 
             if (!_entityMap.Any(p => p.DapperColumn.PrimaryKey))
             {
@@ -35,8 +36,8 @@ namespace DapperMapper.Repositories
 
         public T GetById(dynamic id)
         {
-            DynamicParameters parms = QueryMapper.RetornaParametroPrimaryKeyUnica<T>(id, _entityMap);
-            var selectAllCommand = QueryMapper.RetornaConsultaSql(_entityMap, QueryType.SelectById);
+            DynamicParameters parms = ParametersMapper.RetornaParametroPrimaryKeyUnica<T>(id, _entityMap);
+            var selectAllCommand = QueryMapper.ReturnSqlQuery(_entityMap, QueryType.SelectById);
 
             using IDbConnection db = new SqlConnection(_connectionString);
             return db.Query<T>(selectAllCommand, parms, commandType: CommandType.Text).FirstOrDefault();
@@ -44,8 +45,8 @@ namespace DapperMapper.Repositories
 
         public T GetById(T entity)
         {
-            var parms = QueryMapper.RetornaParametros(entity, _entityMap, QueryType.SelectById);
-            var selectByIdCommand = QueryMapper.RetornaConsultaSql(_entityMap, QueryType.SelectById);
+            var parms = ParametersMapper.RetornaParametros(entity, _entityMap, QueryType.SelectById);
+            var selectByIdCommand = QueryMapper.ReturnSqlQuery(_entityMap, QueryType.SelectById);
 
             using IDbConnection db = new SqlConnection(_connectionString);
             return db.Query<T>(selectByIdCommand, parms, commandType: CommandType.Text).FirstOrDefault();
@@ -53,7 +54,7 @@ namespace DapperMapper.Repositories
 
         public List<T> GetAll()
         {
-            var selectAllCommand = QueryMapper.RetornaConsultaSql(_entityMap, QueryType.SelectAll);
+            var selectAllCommand = QueryMapper.ReturnSqlQuery(_entityMap, QueryType.SelectAll);
 
             using IDbConnection db = new SqlConnection(_connectionString);
             return db.Query<T>(selectAllCommand, null, commandType: CommandType.Text).ToList();
@@ -69,8 +70,8 @@ namespace DapperMapper.Repositories
 
         public bool Insert(T entity)
         {
-            var parms = QueryMapper.RetornaParametros(entity, _entityMap, QueryType.Insert);
-            var insertCommand = QueryMapper.RetornaConsultaSql(_entityMap, QueryType.InsertWithCount);
+            var parms = ParametersMapper.RetornaParametros(entity, _entityMap, QueryType.Insert);
+            var insertCommand = QueryMapper.ReturnSqlQuery(_entityMap, QueryType.InsertWithCount);
 
             using IDbConnection db = new SqlConnection(_connectionString);
             return db.ExecuteScalar<int>(insertCommand, parms, commandType: CommandType.Text) > 0;
@@ -88,46 +89,33 @@ namespace DapperMapper.Repositories
                 throw new ArgumentNullException(nameof(trans), "Transação não pode ser nula");
             }
 
-            var parms = QueryMapper.RetornaParametros<T>(entity, _entityMap, QueryType.Insert);
-            var insertCommand = QueryMapper.RetornaConsultaSql<T>(_entityMap, QueryType.Insert);
+            var parms = ParametersMapper.RetornaParametros<T>(entity, _entityMap, QueryType.Insert);
+            var insertCommand = QueryMapper.ReturnSqlQuery<T>(_entityMap, QueryType.Insert);
 
-            cnn.Execute(insertCommand, parms, trans, commandType: CommandType.Text);
+            cnn.Query(insertCommand, parms, trans, commandType: CommandType.Text);
         }
 
-        public bool Insert(List<T> entityList)
+        public QueryResult Insert(List<T> entityList)
         {
-            using (IDbConnection db = new SqlConnection(_connectionString))
-            {
-                var trans = db.BeginTransaction();
+            var parms = ParametersMapper.RetornaParametros(entityList, _entityMap, QueryType.InsertMultiple);
+            var insertCommand = QueryMapper.ReturnSqlQuery(entityList.Count, _entityMap, QueryType.InsertMultiple);
 
-                try
-                {
-                    foreach (var entity in entityList)
-                    {
-                        Insert(entity, db, trans);
-                    }
+            using IDbConnection db = new SqlConnection(_connectionString);
+            var queryReturn = db.Query(insertCommand, parms, commandType: CommandType.Text).FirstOrDefault();
 
-                    trans.Commit();
-                    return true;
-                }
-                catch
-                {
-                    trans.Rollback();
-                    return false;
-                }
-            }
+            return GetSqlTransactionReturn(queryReturn);
         }
 
         public bool Update(T entity)
         {
-            var parms = QueryMapper.RetornaParametros(entity, _entityMap, QueryType.Update);
-            var updateCommand = QueryMapper.RetornaConsultaSql(_entityMap, QueryType.UpdateWithCount);
+            var parms = ParametersMapper.RetornaParametros(entity, _entityMap, QueryType.Update);
+            var updateCommand = QueryMapper.ReturnSqlQuery(_entityMap, QueryType.UpdateWithCount);
 
             using IDbConnection db = new SqlConnection(_connectionString);
             return db.ExecuteScalar<int>(updateCommand, parms, commandType: CommandType.Text) > 0;
         }
 
-        public virtual void Update(T entity, IDbConnection cnn, IDbTransaction trans)
+        public void Update(T entity, IDbConnection cnn, IDbTransaction trans)
         {
             if (cnn == null)
             {
@@ -139,40 +127,27 @@ namespace DapperMapper.Repositories
                 throw new ArgumentNullException(nameof(trans), "Transação não pode ser nula");
             }
 
-            var parms = QueryMapper.RetornaParametros(entity, _entityMap, QueryType.Update);
-            var insertCommand = QueryMapper.RetornaConsultaSql(_entityMap, QueryType.Update);
+            var parms = ParametersMapper.RetornaParametros(entity, _entityMap, QueryType.Update);
+            var insertCommand = QueryMapper.ReturnSqlQuery(_entityMap, QueryType.Update);
 
             cnn.Execute(insertCommand, parms, trans, commandType: CommandType.Text);
         }
 
         public bool Update(List<T> entityList)
         {
-            using (IDbConnection db = new SqlConnection(_connectionString))
-            {
-                var trans = db.BeginTransaction();
+            var parms = ParametersMapper.RetornaParametros(entityList, _entityMap, QueryType.UpdateMultiple);
+            var updateCommand = QueryMapper.ReturnSqlQuery(entityList.Count, _entityMap, QueryType.UpdateMultiple);
 
-                try
-                {
-                    foreach (var entity in entityList)
-                    {
-                        Insert(entity, db, trans);
-                    }
+            using IDbConnection db = new SqlConnection(_connectionString);
+            var queryReturn = db.Query(updateCommand, parms, commandType: CommandType.Text).FirstOrDefault();
 
-                    trans.Commit();
-                    return true;
-                }
-                catch
-                {
-                    trans.Rollback();
-                    return false;
-                }
-            }
+            return GetSqlTransactionReturn(queryReturn);
         }
 
         public bool Delete(T entity)
         {
-            var parms = QueryMapper.RetornaParametros(entity, _entityMap, QueryType.Delete);
-            var deleteSql = QueryMapper.RetornaConsultaSql(_entityMap, QueryType.DeleteWithCount);
+            var parms = ParametersMapper.RetornaParametros(entity, _entityMap, QueryType.Delete);
+            var deleteSql = QueryMapper.ReturnSqlQuery(_entityMap, QueryType.DeleteWithCount);
 
             using IDbConnection db = new SqlConnection(_connectionString);
             return db.ExecuteScalar<int>(deleteSql, parms, commandType: CommandType.Text) > 0;
@@ -190,35 +165,48 @@ namespace DapperMapper.Repositories
                 throw new ArgumentNullException("trans", "Transação não pode ser nula");
             }
 
-            var parms = QueryMapper.RetornaParametros(entity, _entityMap, QueryType.Delete);
-            var deleteSql = QueryMapper.RetornaConsultaSql(_entityMap, QueryType.Delete);
+            var parms = ParametersMapper.RetornaParametros(entity, _entityMap, QueryType.Delete);
+            var deleteSql = QueryMapper.ReturnSqlQuery(_entityMap, QueryType.Delete);
 
             using IDbConnection db = new SqlConnection(_connectionString);
             cnn.Execute(deleteSql, parms, trans, commandType: CommandType.Text);
         }
 
-        public virtual bool Delete(List<T> entityList)
+        public bool Delete(List<T> entityList)
         {
-            using (IDbConnection db = new SqlConnection(_connectionString))
+            var parms = ParametersMapper.RetornaParametros(entityList, _entityMap, QueryType.DeleteMultiple);
+            var updateCommand = QueryMapper.ReturnSqlQuery(entityList.Count, _entityMap, QueryType.DeleteMultiple);
+
+            using IDbConnection db = new SqlConnection(_connectionString);
+            var queryReturn = db.Query(updateCommand, parms, commandType: CommandType.Text).FirstOrDefault();
+
+            return GetSqlTransactionReturn(queryReturn);
+        }
+
+        private static QueryResult GetSqlTransactionReturn(dynamic queryReturn)
+        {
+            if (queryReturn is IDictionary<string, object> resultDictionary)
             {
-                var trans = db.BeginTransaction();
-
-                try
+                if (resultDictionary[""] is int affectedRows)
                 {
-                    foreach (var entity in entityList)
-                    {
-                        Delete(entity, db, trans);
-                    }
-
-                    trans.Commit();
-                    return true;
+                    return new QueryResult(affectedRows > 0, affectedRows);
                 }
-                catch
+                else
                 {
-                    trans.Rollback();
-                    return false;
+                    var errorNumber = (int)resultDictionary["ErrorNumber"];
+                    var errorSeverity = (int)resultDictionary["ErrorSeverity"];
+                    var errorState = (int)resultDictionary["ErrorState"];
+                    string errorProcedure = (string)resultDictionary["ErrorProcedure"];
+                    var errorLine = (int)resultDictionary["ErrorLine"];
+                    string errorMessage = (string)resultDictionary["ErrorMessage"];
+
+                    return new QueryResult(
+                        false,
+                        0,
+                        new SqlInfoError(errorNumber, errorSeverity, errorState, errorProcedure, errorLine, errorMessage));
                 }
             }
+            return null;
         }
     }
 }

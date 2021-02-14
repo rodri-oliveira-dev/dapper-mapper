@@ -31,7 +31,8 @@ namespace DapperMapper.Attributes
             {
                 if (!string.IsNullOrEmpty(ColumnName))
                 {
-                    Regex.Replace(ColumnName, @"[^A-Za-z0-9_]+", "", RegexOptions.CultureInvariant);
+                    var sanitizedValue = Regex.Replace(ColumnName, @"[^A-Za-z0-9_]+", "", RegexOptions.CultureInvariant);
+                    return sanitizedValue;
                 }
 
                 return string.Empty;

@@ -133,7 +133,7 @@ namespace DapperMapper.Repositories
             cnn.Execute(insertCommand, parms, trans, commandType: CommandType.Text);
         }
 
-        public bool Update(List<T> entityList)
+        public QueryResult Update(List<T> entityList)
         {
             var parms = ParametersMapper.RetornaParametros(entityList, _entityMap, QueryType.UpdateMultiple);
             var updateCommand = QueryMapper.ReturnSqlQuery(entityList.Count, _entityMap, QueryType.UpdateMultiple);
@@ -172,7 +172,7 @@ namespace DapperMapper.Repositories
             cnn.Execute(deleteSql, parms, trans, commandType: CommandType.Text);
         }
 
-        public bool Delete(List<T> entityList)
+        public QueryResult Delete(List<T> entityList)
         {
             var parms = ParametersMapper.RetornaParametros(entityList, _entityMap, QueryType.DeleteMultiple);
             var updateCommand = QueryMapper.ReturnSqlQuery(entityList.Count, _entityMap, QueryType.DeleteMultiple);

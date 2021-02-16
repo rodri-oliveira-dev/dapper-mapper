@@ -1,5 +1,4 @@
 ﻿using BenchmarkDotNet.Running;
-using System.Collections.Generic;
 
 namespace DapperMapper.Console
 {
@@ -11,43 +10,75 @@ namespace DapperMapper.Console
         static void Main(string[] args)
         {
 
-            var repoNovo = new TabelaTesteDapperMapper(StringConnection);
+            //var repoNovo = new ProdutosRepository(StringConnection);
 
-            //var repoAntigo = new TabelaTesteRepository(StringConnection);
+            //var produto = new Produtos
+            //{
+            //    Descricao = "Produto 1",
+            //    Valor = 12.7,
+            //    Ativo = true,
+            //    CodigoIdentificacao = "1234567890"
 
-            ////var regioes = repoNovo.GetAll();
+            //};
 
-            // var tste = repoNovo.GetAll();
 
-            // repoNovo.Insert(new TabelaTeste());
-            repoNovo.Insert(new List<TabelaTeste>
-            {
-                new TabelaTeste
-                {
-                    Campo = "teste",
-                    Campo2 = "Teste2"
-                },
-                new TabelaTeste
-                {
-                    Campo = "teste",
-                    Campo2 = "Teste2"
-                },
-                new TabelaTeste
-                {
-                    Campo = "teste",
-                    Campo2 = "Teste2"
-                }
-            });
+            //repoNovo.Insert(produto);
 
-            //var regiao = repoNovo.GetById(9);
+            //produto.Descricao = "Produto-1";
+            //produto.DataAtualizacao = DateTime.Now;
 
-            //regiao.NomeRegiao = "Teste 2";
+            //repoNovo.Update(produto);
 
-            //var teste2 = repoNovo.Update(regiao);
+            //repoNovo.Delete(produto);
 
-            //var regiao2 = repo.repoNovo(regiao);
+            //var produtos = new List<Produtos>
+            //{
+            //    new Produtos
+            //    {
+            //        Descricao = "Produto 1",
+            //        Valor = 12.7,
+            //        Ativo = true,
+            //        CodigoIdentificacao = "1234567890"
+            //    },
+            //    new Produtos
+            //    {
+            //        Descricao = "Produto 2",
+            //        Valor = 12.7,
+            //        Ativo = true,
+            //        CodigoIdentificacao = "1234567890"
+            //    },
+            //    new Produtos
+            //    {
+            //        Descricao = "Produto 3",
+            //        Valor = 12.7,
+            //        Ativo = true,
+            //        CodigoIdentificacao = "1234567890"
+            //    },
+            //    new Produtos
+            //    {
+            //        Descricao = "Produto 4",
+            //        Valor = 12.7,
+            //        Ativo = true,
+            //        CodigoIdentificacao = "1234567890"
+            //    },
+            //};
 
-            //repoNovo.Delete(regiao2);
+            //repoNovo.Insert(produtos);
+
+            //produtos[0].Descricao = "Produto-1";
+            //produtos[0].DataAtualizacao = DateTime.Now;
+            //produtos[1].Descricao = "Produto-2";
+            //produtos[1].DataAtualizacao = DateTime.Now;
+            //produtos[2].Descricao = "Produto-3";
+            //produtos[2].DataAtualizacao = DateTime.Now;
+            //produtos[3].Descricao = "Produto-4";
+            //produtos[3].DataAtualizacao = DateTime.Now;
+
+            //var totalInserido = repoNovo.QuantidadeRegistros();
+
+            //repoNovo.Update(produtos);
+
+            //repoNovo.Delete(produtos);
 
             var summary = BenchmarkRunner.Run<MemoryBenchmarkerDemo>();
 

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
 namespace DapperMapper.Attributes
@@ -7,7 +6,7 @@ namespace DapperMapper.Attributes
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     public sealed class DapperTable : Attribute
     {
-        public DapperTable([CallerMemberName] string tableName = "")
+        public DapperTable(string tableName)
         {
             TableName = !string.IsNullOrEmpty(tableName)
                 ? Regex.Replace(tableName, @"[^A-Za-z0-9_[\].]+", "")

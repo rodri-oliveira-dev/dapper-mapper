@@ -10,7 +10,7 @@ namespace DapperMapper.Console
         static void Main(string[] args)
         {
 
-            //var repoNovo = new ProdutosRepository(StringConnection);
+            var repoNovo = new ProdutosRepository(StringConnection);
 
             //var produto = new Produtos
             //{
